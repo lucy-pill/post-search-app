@@ -12,16 +12,28 @@ export default function Search() {
   const [iconView, setIconView] = useState(false);
   const [focused, setFocused] = useState(false);
 
+  const keywordRef = useRef();
+
+  const onSearchIconHandle = () => {
+    setFocused(true);
+    if(keyword !== '') setIconView(true);
+    keywordRef.current.focus();
+  };
+
   const onDeleteHandle = () => {
     setKeyword('');
     setIconView(false);
   };
 
   const onViewHandle = (e) => {
-    if (e.type === 'mouseover' && keyword !== '') {
+    if(focused) {
       setIconView(true);
     } else {
-      if (keyword === '') setIconView(false);
+      if (e.type === 'mouseover' && keyword !== '') {
+        setIconView(true);
+      } else {
+        setIconView(false);
+      }
     }
   };
 
@@ -29,7 +41,7 @@ export default function Search() {
     if (e.type === 'focus') setFocused(true);
     else {
       setFocused(false);
-      keyword !== '' ? setIconView(true) : setIconView(false);
+      setIconView(false);
     }
   };
 
@@ -42,18 +54,25 @@ export default function Search() {
   return (
     <Container focused={focused}>
       <div className='search__div--container'>
-        <AiOutlineSearch className='search__svg--icon' color='#4d4d4d' />
-        <div className='search__div--box'>
+        <AiOutlineSearch
+          className='search__svg--icon'
+          color='#4d4d4d'
+          onClick={() => onSearchIconHandle()}
+        />
+        <div
+          className='search__div--box'
+          onMouseOver={(e) => onViewHandle(e)}
+          onMouseOut={(e) => onViewHandle(e)}
+        >
           <input
             className='search__input--box--text'
             type='text'
             value={keyword}
             placeholder='검색어를 입력하세요'
             onChange={(e) => setKeyword(e.target.value)}
-            onMouseOver={(e) => onViewHandle(e)}
-            onMouseOut={(e) => onViewHandle(e)}
             onFocus={(e) => onFocusHandle(e)}
             onBlur={(e) => onFocusHandle(e)}
+            ref={keywordRef}
           />
           {iconView ? (
             <div
