@@ -16,7 +16,7 @@ export default function Search() {
 
   const onSearchIconHandle = () => {
     setFocused(true);
-    if(keyword !== '') setIconView(true);
+    if (keyword !== '') setIconView(true);
     keywordRef.current.focus();
   };
 
@@ -26,8 +26,9 @@ export default function Search() {
   };
 
   const onViewHandle = (e) => {
-    if(focused) {
-      setIconView(true);
+    if (focused) {
+      if (keyword !== '') setIconView(true);
+      else setIconView(false);
     } else {
       if (e.type === 'mouseover' && keyword !== '') {
         setIconView(true);
@@ -48,6 +49,8 @@ export default function Search() {
   useEffect(() => {
     if (keyword !== '') {
       setIconView(true);
+    } else {
+      setIconView(false);
     }
   }, [keyword]);
 

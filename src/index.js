@@ -6,6 +6,10 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import GlobalStyle from './assets/styles/GlobalStyle';
 import { ThemeProvider } from 'styled-components';
+import {
+  QueryClient,
+  QueryClientProvider,
+} from 'react-query';
 
 // Components
 import App from './App';
@@ -13,12 +17,16 @@ import App from './App';
 // Shared
 import theme from './shared/theme';
 
+const queryClient = new QueryClient();
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <BrowserRouter>
     <ThemeProvider theme={theme}>
       <GlobalStyle />
-      <App />
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>
     </ThemeProvider>
   </BrowserRouter>
 );
