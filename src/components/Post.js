@@ -1,8 +1,16 @@
+// Packages
+import { useNavigate } from 'react-router-dom';
+
 import styled from 'styled-components';
 
 export default function Post({ id, title, content, type }) {
+  const navigate = useNavigate();
+
+  const onClickHandle = () => {
+    navigate(`/${type}/${id}`);
+  }
   return (
-    <Container>
+    <Container onClick={onClickHandle}>
       <h3 className='post__span--container--title'>
         <span className='post__span--container--id'>{id}.</span>
         &nbsp;{title}

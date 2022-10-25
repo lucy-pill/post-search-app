@@ -7,8 +7,7 @@ import { HiOutlineX } from 'react-icons/hi';
 
 import styled from 'styled-components';
 
-export default function Search() {
-  const [keyword, setKeyword] = useState('');
+export default function Search({keyword, setKeyword}) {
   const [iconView, setIconView] = useState(false);
   const [focused, setFocused] = useState(false);
 

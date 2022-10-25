@@ -1,12 +1,12 @@
 import styled from 'styled-components';
-export default function Navigator({ text, setCtg, setPage, selected }) {
+export default function Navigator({ text, setCtg, selected }) {
   const onClickHandle = () => {
     if (text.split(' ')[0] === 'A') {
       setCtg('a');
-      setPage(0);
+      window.sessionStorage.setItem('ctg', 'a');
     } else {
       setCtg('b');
-      setPage(0);
+      window.sessionStorage.setItem('ctg', 'b');
     }
   };
   return (

@@ -14,8 +14,10 @@ import Navigator from '../components/Navigator';
 import styled from 'styled-components';
 
 export default function Main() {
-  const [ctg, setCtg] = useState('a');
-  const [page, setPage] = useState(0);
+  const globalCtg = window.sessionStorage.getItem('ctg');
+  
+  const [keyword, setKeyword] = useState('');
+  const [ctg, setCtg] = useState(globalCtg !== null ? globalCtg : 'a');
 
   const [ref, inView] = useInView({ threshold: 0.4 });
 
@@ -30,50 +32,54 @@ export default function Main() {
       .then((res) => res.data);
   };
 
-  const {
-    data,
-    status,
-    hasNextPage,
-    fetchNextPage,
-    isFetchingNextPage,
-    isFetching,
-  } = useInfiniteQuery(
-    ['posts'],
-    async ({ pageParam = 0 }) => {
-      if (ctg === 'a') return await getAPost(pageParam);
-      else return await getBPost(pageParam);
+  const aPostData = useInfiniteQuery(
+    ['aPosts'],
+    ({ pageParam = 0 }) => getAPost(pageParam),
+    {
+      getNextPageParam: (_lastPage, pages) => {
+        if (pages.length < 10) {
+          return pages.length;
+        } else {
+          return undefined;
+        }
+      },
     }
-    //
   );
 
-  // const handleScroll = () => {
-  //   const scrollHeight = document.documentElement.scrollHeight;
-  //   const scrollTop = document.documentElement.scrollTop;
-  //   const clientHeight = document.documentElement.clientHeight;
-  //   if (scrollTop + clientHeight >= scrollHeight) {
-  //     setPage((page) => page + 1);
-  //     console.log('bottom');
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   window.addEventListener('scroll', handleScroll);
-  //   return () => {
-  //     window.removeEventListener('scroll', handleScroll);
-  //   };
-  // }, []);
+  const bPostData = useInfiniteQuery(
+    ['bPosts'],
+    ({ pageParam = 0 }) => getBPost(pageParam),
+    {
+      getNextPageParam: (_lastPage, pages) => {
+        if (pages.length < 10) {
+          return pages.length;
+        } else {
+          return undefined;
+        }
+      },
+    }
+  );
 
   useEffect(() => {
-    if (inView && hasNextPage) {
-      console.log('BackEnd has next page.');
-      fetchNextPage();
+    if (keyword === '') {
+      if (ctg === 'a') {
+        if (inView & aPostData.hasNextPage) {
+          aPostData.fetchNextPage();
+        }
+      } else {
+        if (inView & bPostData.hasNextPage) {
+          bPostData.fetchNextPage();
+        }
+      }
     }
   }, [inView]);
+
+  useEffect(() => {}, [keyword]);
 
   return (
     <Container>
       <div className='main__div--search--container'>
-        <Search />
+        <Search keyword={keyword} setKeyword={setKeyword} />
       </div>
       <div className='main__div--data--container'>
         <div className='main__div--data--navi--container'>
@@ -81,35 +87,55 @@ export default function Main() {
             text={'A Posts'}
             ctg={ctg}
             setCtg={setCtg}
-            setPage={setPage}
             selected={ctg === 'a' ? true : false}
           />
           <Navigator
             text={'B Posts'}
             ctg={ctg}
             setCtg={setCtg}
-            setPage={setPage}
             selected={ctg === 'b' ? true : false}
           />
         </div>
         <div className='main__div--data--post--container'>
-          {data?.pages?.map((page, idx) => {
-            return (
-              <Fragment key={idx}>
-                {page.map((post) => {
-                  return (
-                    <Post
-                      key={post.id}
-                      id={post.id}
-                      title={post.title}
-                      content={post.content}
-                      type={post.type}
-                    />
-                  );
-                })}
-              </Fragment>
-            );
-          })}
+          {keyword !== '' ? (
+            <></>
+          ) : ctg === 'a' ? (
+            aPostData.data?.pages.map((page, idx) => {
+              return (
+                <Fragment key={idx}>
+                  {page.map((post) => {
+                    return (
+                      <Post
+                        key={post.id}
+                        id={post.id}
+                        title={post.title}
+                        content={post.content}
+                        type={post.type}
+                      />
+                    );
+                  })}
+                </Fragment>
+              );
+            })
+          ) : (
+            bPostData.data?.pages.map((page, idx) => {
+              return (
+                <Fragment key={idx}>
+                  {page.map((post) => {
+                    return (
+                      <Post
+                        key={post.id}
+                        id={post.id}
+                        title={post.title}
+                        content={post.content}
+                        type={post.type}
+                      />
+                    );
+                  })}
+                </Fragment>
+              );
+            })
+          )}
         </div>
       </div>
       <div className='main__div--container--footer' ref={ref} />
@@ -141,13 +167,10 @@ export const Container = styled.div`
       width: 100%;
       height: auto;
       min-height: 37px;
-      margin-top: 25px;
+      margin-top: 15px;
       border: 1px solid red;
       border-radius: 5px;
       padding: 17.5px;
     }
   }
-  .main__div--container--footer {
-      display: none;
-    }
 `;
