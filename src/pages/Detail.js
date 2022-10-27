@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Packages
 import { useQuery } from 'react-query';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 // Assets
 import { Container } from '../assets/styles/pages/Detail.styled';
@@ -20,7 +20,7 @@ export default function Detail() {
 
   const { status, data, remove, refetch } = useQuery('post', getPost);
 
-  const onClickHandle = () => {
+  const onClickHandle = _ => {
     remove();
     refetch();
     navigate(-1, { replace: true });

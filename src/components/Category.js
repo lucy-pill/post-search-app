@@ -7,7 +7,7 @@ import { Container } from '../assets/styles/components/Category.styled';
 export default function Category({ text, selected }) {
   const setCtg = usePostStore((state) => state.setCtg);
 
-  const onClickHandle = () => {
+  const onClickHandle = _ => {
     if (text.split(' ')[0] === 'A') {
       setCtg('a');
     } else {

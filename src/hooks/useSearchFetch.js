@@ -13,8 +13,8 @@ const useFetchASearch = (key, category, keyword) => {
     key,
     ({ pageParam = 0 }) => getASearchPosts(category, pageParam, keyword),
     {
-      getNextPageParam: (_lastPage, pages) => {
-        if (pages.length < 10) {
+      getNextPageParam: (lastPage, pages) => {
+        if (lastPage.length === 10) {
           return pages.length;
         } else {
           return undefined;

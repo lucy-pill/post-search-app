@@ -1,6 +1,3 @@
-// Zustand
-import usePostStore from '../zustand';
-
 // Packages
 import { useNavigate } from 'react-router-dom';
 
@@ -10,7 +7,7 @@ import { Container } from '../assets/styles/components/Post.styled';
 export default function Post({ id, title, content, type }) {
   const navigate = useNavigate();
 
-  const onClickHandle = () => {
+  const onClickHandle = _ => {
     navigate(`/${type}/${id}`);
   };
   return (

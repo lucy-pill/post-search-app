@@ -20,7 +20,7 @@ export default function Search() {
 
   const keywordRef = useRef();
 
-  const onSearchIconHandle = () => {
+  const onSearchIconHandle = _ => {
     setFocused(true);
     if (keyword !== '') setIconView(true);
     keywordRef.current.focus();
@@ -57,7 +57,7 @@ export default function Search() {
     }
   };
 
-  useEffect(() => {
+  useEffect(_ => {
     if (keyword !== '') {
       if (iconView === false) {
         setIconView(true);
