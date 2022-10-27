@@ -3,13 +3,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 
 // Packages
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 import GlobalStyle from './assets/styles/GlobalStyle';
 import { ThemeProvider } from 'styled-components';
-import {
-  QueryClient,
-  QueryClientProvider,
-} from 'react-query';
+import { QueryClient, QueryClientProvider } from 'react-query';
 
 // Components
 import App from './App';
@@ -21,12 +18,12 @@ const queryClient = new QueryClient();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <BrowserRouter>
-    <ThemeProvider theme={theme}>
-      <GlobalStyle />
-      <QueryClientProvider client={queryClient}>
+  <Router>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={theme}>
+        <GlobalStyle />
         <App />
-      </QueryClientProvider>
-    </ThemeProvider>
-  </BrowserRouter>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </Router>
 );

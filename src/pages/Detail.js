@@ -1,41 +1,59 @@
 // React
 import axios from 'axios';
-import { useEffect } from 'react';
 
 // Packages
 import { useQuery } from 'react-query';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 
-import styled from 'styled-components';
+// Assets
+import { Container } from '../assets/styles/pages/Detail.styled';
 
 export default function Detail() {
   const { type, id } = useParams();
+  const navigate = useNavigate();
 
   const getPost = async () => {
-    return await axios.get(
-      `https://recruit-api.yonple.com/recruit/116361/${type}-posts/${id}`
-    );
+    return await axios
+      .get(`https://recruit-api.yonple.com/recruit/116361/${type}-posts/${id}`)
+      .then((res) => res.data);
   };
 
-  const { status, data, error } = useQuery('post', getPost);
+  const { status, data, remove, refetch } = useQuery('post', getPost);
+
+  const onClickHandle = () => {
+    remove();
+    refetch();
+    navigate(-1, { replace: true });
+  };
 
   return (
     <Container>
-      <div className='detail__div--container'></div>
+      <div className='detail__div--container'>
+        {status === 'loading' ? (
+          <></>
+        ) : (
+          <>
+            <div className='detail__div--container--title'>
+              <span className='detail__span--container--title'>
+                {data?.title}
+              </span>
+            </div>
+            <div className='detail__div--container--content'>
+              <span className='detail__span--container--content'>
+                {data?.content}
+              </span>
+            </div>
+          </>
+        )}
+      </div>
+      <div className='detail__div--container--btn'>
+        <button
+          className='detail__button--container--btn'
+          onClick={onClickHandle}
+        >
+          뒤로가기
+        </button>
+      </div>
     </Container>
   );
 }
-
-const Container = styled.div`
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  .detail__div--container {
-    width: 100%;
-    height: auto;
-    max-width: 930px;
-    margin-top: 70px;
-    margin-bottom: 14px;
-    border: 1px solid rgb(229, 231, 235);
-  }
-`;

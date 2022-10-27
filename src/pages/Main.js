@@ -1,176 +1,204 @@
 // React
-import { useState, useEffect, Fragment } from 'react';
+import { useEffect, useCallback, Fragment } from 'react';
+
+// Zustand
+import usePostStore from '../zustand/index';
 
 // Packages
-import axios from 'axios';
-import { useInfiniteQuery } from 'react-query';
 import { useInView } from 'react-intersection-observer';
+
+// Hooks
+import usePostFetch from '../hooks/usePostFetch';
+import useSearchFetch from '../hooks/useSearchFetch';
+import useDidMountEffect from '../hooks/useDidMountEffect';
 
 // Components
 import Post from '../components/Post';
 import Search from '../components/Search';
-import Navigator from '../components/Navigator';
+import Category from '../components/Category';
 
-import styled from 'styled-components';
+// Utils
+import debounce from '../utils/debounce';
+
+// Assets
+import { Container } from '../assets/styles/pages/Main.styled';
 
 export default function Main() {
-  const globalCtg = window.sessionStorage.getItem('ctg');
-  
-  const [keyword, setKeyword] = useState('');
-  const [ctg, setCtg] = useState(globalCtg !== null ? globalCtg : 'a');
+  const keyword = usePostStore((state) => state.keyword);
+  const ctg = usePostStore((state) => state.ctg);
 
   const [ref, inView] = useInView({ threshold: 0.4 });
 
-  const getAPost = async (page) => {
-    return await axios
-      .get(`https://recruit-api.yonple.com/recruit/116361/a-posts?page=${page}`)
-      .then((res) => res.data);
-  };
-  const getBPost = async (page) => {
-    return await axios
-      .get(`https://recruit-api.yonple.com/recruit/116361/b-posts?page=${page}`)
-      .then((res) => res.data);
-  };
+  const {
+    data: aData,
+    fetchNextPage: aPostFetchNextPage,
+    hasNextPage: aPostHasNextPage,
+  } = usePostFetch(['aPost'], 'a');
 
-  const aPostData = useInfiniteQuery(
-    ['aPosts'],
-    ({ pageParam = 0 }) => getAPost(pageParam),
-    {
-      getNextPageParam: (_lastPage, pages) => {
-        if (pages.length < 10) {
-          return pages.length;
-        } else {
-          return undefined;
-        }
-      },
-    }
-  );
+  const {
+    data: bData,
+    fetchNextPage: bPostFetchNextPage,
+    hasNextPage: bPostHasNextPage,
+  } = usePostFetch(['bPost'], 'b');
 
-  const bPostData = useInfiniteQuery(
-    ['bPosts'],
-    ({ pageParam = 0 }) => getBPost(pageParam),
-    {
-      getNextPageParam: (_lastPage, pages) => {
-        if (pages.length < 10) {
-          return pages.length;
-        } else {
-          return undefined;
-        }
-      },
-    }
+  const {
+    data: aSearchData,
+    fetchNextPage: aSearchFetchNextPage,
+    hasNextPage: aSearchHasNextPage,
+    remove: removeASearch,
+    refetch: refetchASearch,
+  } = useSearchFetch(['aSearch'], 'a', keyword);
+
+  const {
+    data: bSearchData,
+    fetchNextPage: bSearchFetchNextPage,
+    hasNextPage: bSearchHasNextPage,
+    remove: removeBSearch,
+    refetch: refetchBSearch,
+  } = useSearchFetch(['bSearch'], 'b', keyword);
+
+  const searchNewKeyword = useCallback(
+    debounce((ctg) => {
+      if (ctg === 'a') {
+        removeASearch();
+        refetchASearch();
+      } else {
+        removeBSearch();
+        refetchBSearch();
+      }
+    }, 150),
+    []
   );
 
   useEffect(() => {
     if (keyword === '') {
       if (ctg === 'a') {
-        if (inView & aPostData.hasNextPage) {
-          aPostData.fetchNextPage();
+        if (inView & aPostHasNextPage) {
+          aPostFetchNextPage();
         }
       } else {
-        if (inView & bPostData.hasNextPage) {
-          bPostData.fetchNextPage();
+        if (inView & bPostHasNextPage) {
+          bPostFetchNextPage();
+        }
+      }
+    } else {
+      if (ctg === 'a') {
+        if (inView & aSearchHasNextPage) {
+          aSearchFetchNextPage();
+        }
+      } else {
+        if (inView & bSearchHasNextPage) {
+          bSearchFetchNextPage();
         }
       }
     }
   }, [inView]);
 
-  useEffect(() => {}, [keyword]);
+  useDidMountEffect(() => {
+    if (keyword !== '') {
+      if (ctg === 'a') {
+        searchNewKeyword('a');
+      } else {
+        searchNewKeyword('b');
+      }
+    }
+  }, [keyword]);
+
+  useEffect(() => {
+    if (keyword !== '') {
+      if (ctg === 'a') {
+        refetchASearch();
+      } else {
+        refetchBSearch();
+      }
+    }
+  }, [ctg]);
 
   return (
     <Container>
       <div className='main__div--search--container'>
-        <Search keyword={keyword} setKeyword={setKeyword} />
+        <Search />
       </div>
       <div className='main__div--data--container'>
         <div className='main__div--data--navi--container'>
-          <Navigator
-            text={'A Posts'}
-            ctg={ctg}
-            setCtg={setCtg}
-            selected={ctg === 'a' ? true : false}
-          />
-          <Navigator
-            text={'B Posts'}
-            ctg={ctg}
-            setCtg={setCtg}
-            selected={ctg === 'b' ? true : false}
-          />
+          <Category text={'A Posts'} selected={ctg === 'a' ? true : false} />
+          <Category text={'B Posts'} selected={ctg === 'b' ? true : false} />
         </div>
         <div className='main__div--data--post--container'>
-          {keyword !== '' ? (
-            <></>
-          ) : ctg === 'a' ? (
-            aPostData.data?.pages.map((page, idx) => {
-              return (
-                <Fragment key={idx}>
-                  {page.map((post) => {
-                    return (
-                      <Post
-                        key={post.id}
-                        id={post.id}
-                        title={post.title}
-                        content={post.content}
-                        type={post.type}
-                      />
-                    );
-                  })}
-                </Fragment>
-              );
-            })
-          ) : (
-            bPostData.data?.pages.map((page, idx) => {
-              return (
-                <Fragment key={idx}>
-                  {page.map((post) => {
-                    return (
-                      <Post
-                        key={post.id}
-                        id={post.id}
-                        title={post.title}
-                        content={post.content}
-                        type={post.type}
-                      />
-                    );
-                  })}
-                </Fragment>
-              );
-            })
-          )}
+          {keyword !== ''
+            ? ctg === 'a'
+              ? aSearchData?.pages.map((page, idx) => {
+                  return (
+                    <Fragment key={idx}>
+                      {page?.map((post) => {
+                        return (
+                          <Post
+                            key={post.id}
+                            id={post.id}
+                            title={post.title}
+                            content={post.content}
+                            type={post.type}
+                          />
+                        );
+                      })}
+                    </Fragment>
+                  );
+                })
+              : bSearchData?.pages.map((page, idx) => {
+                  return (
+                    <Fragment key={idx}>
+                      {page?.map((post) => {
+                        return (
+                          <Post
+                            key={post.id}
+                            id={post.id}
+                            title={post.title}
+                            content={post.content}
+                            type={post.type}
+                          />
+                        );
+                      })}
+                    </Fragment>
+                  );
+                })
+            : ctg === 'a'
+            ? aData?.pages.map((page, idx) => {
+                return (
+                  <Fragment key={idx}>
+                    {page?.map((post) => {
+                      return (
+                        <Post
+                          key={post.id}
+                          id={post.id}
+                          title={post.title}
+                          content={post.content}
+                          type={post.type}
+                        />
+                      );
+                    })}
+                  </Fragment>
+                );
+              })
+            : bData?.pages.map((page, idx) => {
+                return (
+                  <Fragment key={idx}>
+                    {page?.map((post) => {
+                      return (
+                        <Post
+                          key={post.id}
+                          id={post.id}
+                          title={post.title}
+                          content={post.content}
+                          type={post.type}
+                        />
+                      );
+                    })}
+                  </Fragment>
+                );
+              })}
         </div>
       </div>
       <div className='main__div--container--footer' ref={ref} />
     </Container>
   );
 }
-
-export const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  height: auto;
-  padding: 35px;
-  .main__div--search--container {
-    margin-top: 50px;
-  }
-  .main__div--data--container {
-    width: 100%;
-    max-width: 930px;
-    margin-top: 50px;
-    .main__div--data--navi--container {
-      width: 100%;
-      height: auto;
-      display: flex;
-      border-bottom: 1px solid #cecece;
-    }
-    .main__div--data--post--container {
-      width: 100%;
-      height: auto;
-      min-height: 37px;
-      margin-top: 15px;
-      border: 1px solid red;
-      border-radius: 5px;
-      padding: 17.5px;
-    }
-  }
-`;
