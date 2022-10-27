@@ -26,15 +26,20 @@ export default function Search() {
     keywordRef.current.focus();
   };
 
-  const onDeleteHandle = () => {
+  const onDeleteHandle = (e) => {
     setKeyword('');
     setIconView(false);
   };
 
   const onViewHandle = (e) => {
     if (focused) {
-      if (keyword !== '') setIconView(true);
-      else setIconView(false);
+      if (keyword !== '') {
+        if (iconView === false) {
+          setIconView(true);
+        }
+      } else {
+        setIconView(false);
+      }
     } else {
       if (e.type === 'mouseover' && keyword !== '') {
         setIconView(true);
@@ -54,7 +59,9 @@ export default function Search() {
 
   useEffect(() => {
     if (keyword !== '') {
-      setIconView(true);
+      if (iconView === false) {
+        setIconView(true);
+      }
     } else {
       setIconView(false);
     }
@@ -66,7 +73,7 @@ export default function Search() {
         <AiOutlineSearch
           className='search__svg--icon'
           color='#4d4d4d'
-          onClick={() => onSearchIconHandle()}
+          onClick={onSearchIconHandle}
         />
         <div
           className='search__div--box'
@@ -86,7 +93,7 @@ export default function Search() {
           {iconView ? (
             <div
               className='search__div--box--icon'
-              onClick={() => onDeleteHandle()}
+              onMouseDown={(e) => onDeleteHandle(e)}
             >
               <HiOutlineX className='search__svg--box--icon' />
             </div>
