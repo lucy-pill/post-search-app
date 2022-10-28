@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react';
 
-const useDidMountEffect = (func, deps) => {
+const useDidMountEffect = (callback, deps) => {
 	const didMount = useRef(false);
 
 	useEffect(() => {
-		if (didMount.current) func();
+		if (didMount.current) callback();
 		else didMount.current = true;
 	}, deps);
 };
